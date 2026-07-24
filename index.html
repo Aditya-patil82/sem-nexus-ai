@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sem Nexus AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash" class="splash">
+    <div class="splash-content">
+        <div class="splash-logo">
+            <span class="material-icons-outlined">psychology</span>
+        </div>
+        <h1 class="splash-title">Sem Nexus AI</h1>
+        <p class="splash-subtitle">Learn. Code. Create.</p>
+    </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth" class="screen hidden">
+    <div class="auth-container">
+        <div class="auth-logo">
+            <span class="material-icons-outlined">psychology</span>
+        </div>
+        <h2 id="auth-title">Welcome Back</h2>
+        <p id="auth-subtitle">Sign in to continue learning</p>
+        <form id="auth-form" class="auth-form">
+            <div class="input-group">
+                <span class="material-icons-outlined input-icon">email</span>
+                <input type="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="input-group">
+                <span class="material-icons-outlined input-icon">lock</span>
+                <input type="password" id="password" placeholder="Password" required minlength="6">
+                <button type="button" class="toggle-pass" onclick="togglePassword()">
+                    <span class="material-icons-outlined" id="eye-icon">visibility_off</span>
+                </button>
+            </div>
+            <button type="submit" class="btn-primary" id="auth-btn">Sign In</button>
+        </form>
+        <p class="auth-toggle">
+            <span id="toggle-text">Don't have an account? </span>
+            <a href="#" onclick="toggleAuthMode(event)">Sign Up</a>
+        </p>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="screen hidden">
+    <!-- AI HUB TAB -->
+    <div id="tab-ai" class="tab-content active">
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="header-logo-circle">
+                    <span class="material-icons-outlined">psychology</span>
+                </div>
+                <span class="header-title">AI Hub</span>
+            </div>
+        </header>
+        <div class="tab-body">
+            <div class="agent-card" onclick="openChat('trend_tech')">
+                <div class="agent-icon">🌟</div>
+                <div class="agent-info">
+                    <h3>Trend Tech Guide</h3>
+                    <p>Advanced tech concepts - GenAI, Web3, Cloud</p>
+                </div>
+                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+            </div>
+            <div class="agent-card" onclick="openChat('code_logic')">
+                <div class="agent-icon">🧠</div>
+                <div class="agent-info">
+                    <h3>Code Logic Builder</h3>
+                    <p>Step-by-step algorithms & pseudo-code</p>
+                </div>
+                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+            </div>
+            <div class="agent-card" onclick="openChat('error_fixer')">
+                <div class="agent-icon">🔧</div>
+                <div class="agent-info">
+                    <h3>Heavy Code Error Fixer</h3>
+                    <p>Debug C, C++, Java, Python bugs</p>
+                </div>
+                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+            </div>
+            <div class="agent-card" onclick="openChat('project_guide')">
+                <div class="agent-icon">📋</div>
+                <div class="agent-info">
+                    <h3>Final Year Project Coordinator</h3>
+                    <p>Brainstorm project ideas & architectures</p>
+                </div>
+                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+            </div>
+            <div class="agent-card" onclick="openChat('report_assist')">
+                <div class="agent-icon">📝</div>
+                <div class="agent-info">
+                    <h3>Report Documentation Assistant</h3>
+                    <p>Blackbooks, synopses & abstracts</p>
+                </div>
+                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CODE LAB TAB -->
+    <div id="tab-code" class="tab-content">
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="header-logo-circle mint">
+                    <span class="material-icons-outlined">terminal</span>
+                </div>
+                <span class="header-title">Code Lab</span>
+            </div>
+            <select id="lang-select" onchange="onLangChange()">
+                <option value="python">Python</option>
+                <option value="c">C</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+            </select>
+        </header>
+        <div class="tab-body code-lab-body">
+            <div class="editor-panel">
+                <div class="editor-header">
+                    <span class="material-icons-outlined" style="color:#00BFA5;font-size:16px">code</span>
+                    <span id="editor-label">Python Editor</span>
+                    <button class="copy-btn" onclick="copyCode()">
+                        <span class="material-icons-outlined">content_copy</span>
+                    </button>
+                </div>
+                <textarea id="code-editor" spellcheck="false"></textarea>
+            </div>
+            <div id="terminal-panel" class="terminal-panel hidden">
+                <div class="terminal-header">
+                    <span class="material-icons-outlined" style="color:#00BFA5;font-size:16px">terminal</span>
+                    <span>Output</span>
+                    <span id="exec-status" class="exec-badge"></span>
+                </div>
+                <pre id="terminal-output" class="terminal-output"></pre>
+            </div>
+        </div>
+        <div class="run-bar">
+            <button id="run-btn" class="btn-run" onclick="runCode()">
+                <span class="material-icons-outlined">play_arrow</span>
+                <span>Run Code</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- CHAT VIEW -->
+    <div id="tab-chat" class="tab-content">
+        <header class="app-header">
+            <button class="back-btn" onclick="closeChat()">
+                <span class="material-icons-outlined">arrow_back</span>
+            </button>
+            <div class="header-logo">
+                <span id="chat-agent-icon" class="chat-agent-icon"></span>
+                <span id="chat-agent-name" class="header-title"></span>
+            </div>
+        </header>
+        <div id="chat-messages" class="chat-messages">
+            <div class="chat-empty" id="chat-empty">
+                <span id="chat-empty-icon" class="chat-empty-emoji"></span>
+                <h3 id="chat-empty-name"></h3>
+                <p id="chat-empty-desc"></p>
+            </div>
+        </div>
+        <div class="chat-input-bar">
+            <div class="chat-input-wrap">
+                <textarea id="chat-input" placeholder="Type your message..." rows="1" onkeydown="handleChatKey(event)"></textarea>
+            </div>
+            <button class="send-btn" onclick="sendChatMessage()">
+                <span class="material-icons-outlined">send</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="tab-profile" class="tab-content">
+        <header class="app-header">
+            <span class="header-title" style="font-weight:700">Profile</span>
+        </header>
+        <div class="tab-body profile-body">
+            <div class="profile-avatar">
+                <span class="material-icons-outlined">person</span>
+            </div>
+            <p class="profile-email" id="profile-email">user@email.com</p>
+            <div class="pro-badge">Pro User</div>
+
+            <div class="section-label">Account</div>
+            <div class="profile-card">
+                <div class="profile-row">
+                    <span class="material-icons-outlined row-icon">email</span>
+                    <div><span class="row-title">Email</span><br><span class="row-sub" id="profile-email2">-</span></div>
+                </div>
+                <div class="profile-row">
+                    <span class="material-icons-outlined row-icon">fingerprint</span>
+                    <div><span class="row-title">User ID</span><br><span class="row-sub" id="profile-uid">-</span></div>
+                </div>
+            </div>
+
+            <div class="section-label">About</div>
+            <div class="profile-card">
+                <div class="profile-row">
+                    <span class="material-icons-outlined row-icon">info</span>
+                    <div><span class="row-title">Version</span><br><span class="row-sub">1.0.0</span></div>
+                </div>
+                <div class="profile-row">
+                    <span class="material-icons-outlined row-icon">code</span>
+                    <div><span class="row-title">Built with</span><br><span class="row-sub">HTML + CSS + JS</span></div>
+                </div>
+            </div>
+
+            <button class="btn-logout" onclick="signOut()">
+                <span class="material-icons-outlined">logout</span>
+                Sign Out
+            </button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('ai')" data-tab="ai">
+            <span class="material-icons-outlined">psychology</span>
+            <span>AI Hub</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('code')" data-tab="code">
+            <span class="material-icons-outlined">terminal</span>
+            <span>Code Lab</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('profile')" data-tab="profile">
+            <span class="material-icons-outlined">person</span>
+            <span>Profile</span>
+        </button>
+    </nav>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
