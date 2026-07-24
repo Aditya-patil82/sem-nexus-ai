@@ -162,6 +162,9 @@ body {
 .agent-arrow { font-size:16px !important; color:var(--text2); flex-shrink:0; }
 
 /* CODE LAB */
+#tab-code { display:flex; flex-direction:column; overflow:hidden; }
+#tab-code.active { display:flex; flex-direction:column; }
+.code-lab-scroll { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px; }
 .code-lab-body { padding:12px !important; display:flex; flex-direction:column; gap:12px; }
 #lang-select {
   background:var(--card); border:1px solid rgba(158,158,158,0.2);
@@ -170,9 +173,9 @@ body {
   outline:none; cursor:pointer;
 }
 .editor-panel {
-  flex:3; background:var(--card); border:1px solid rgba(158,158,158,0.15);
+  flex:none; background:var(--card); border:1px solid rgba(158,158,158,0.15);
   border-radius:16px; overflow:hidden; display:flex; flex-direction:column;
-  min-height:250px;
+  height:300px;
 }
 .editor-header {
   display:flex; align-items:center; gap:8px;
@@ -191,9 +194,9 @@ body {
   tab-size:4;
 }
 .terminal-panel {
-  flex:2; background:#0D0D0D; border:1px solid rgba(158,158,158,0.15);
+  flex:none; background:#0D0D0D; border:1px solid rgba(158,158,158,0.15);
   border-radius:16px; overflow:hidden; display:flex; flex-direction:column;
-  min-height:150px;
+  height:200px;
 }
 .terminal-header {
   display:flex; align-items:center; gap:8px;
