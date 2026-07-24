@@ -1,8 +1,3 @@
-const vm = require('vm');
-const { spawn } = require('child_process');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
 const https = require('https');
 
 module.exports = async (req, res) => {
@@ -15,65 +10,49 @@ module.exports = async (req, res) => {
   const { language, code } = req.body;
   if (!language || !code) return res.status(400).json({ error: 'Missing language or code' });
 
+  const files = [{ name: getFileName(language), content: code }];
+  const body = JSON.stringify({ language, files: files });
+
   try {
-    if (language === 'python' || language === 'c' || language === 'cpp' || language === 'java') {
-      const result = await callPiston(language, code);
-      return res.status(200).json({ run: result });
-    }
-    return res.status(400).json({ run: { stdout: '', stderr: `Unsupported: ${language}`, code: 1 } });
+    const result = await new Promise((resolve, reject) => {
+      const r = https.request({
+        hostname: 'emkc.org',
+        path: '/api/v2/piston/execute',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        timeout: 30000,
+      }, (resp) => {
+        let data = '';
+        resp.on('data', c => data += c);
+        resp.on('end', () => {
+          try {
+            const j = JSON.parse(data);
+            if (j.message) {
+              resolve({ stdout: '', stderr: j.message, code: 1 });
+            } else {
+              resolve({
+                stdout: j.run?.stdout || '',
+                stderr: j.run?.stderr || '',
+                code: j.run?.code ?? 1,
+              });
+            }
+          } catch (e) {
+            resolve({ stdout: '', stderr: 'Parse error', code: 1 });
+          }
+        });
+      });
+      r.on('error', err => resolve({ stdout: '', stderr: 'API unreachable: ' + err.message, code: 1 }));
+      r.on('timeout', () => { r.destroy(); resolve({ stdout: '', stderr: 'Timeout (30s)', code: 1 }); });
+      r.write(body);
+      r.end();
+    });
+
+    return res.status(200).json({ run: result });
   } catch (err) {
     return res.status(200).json({ run: { stdout: '', stderr: err.message, code: 1 } });
   }
 };
 
-function callPiston(language, code) {
-  return new Promise((resolve, reject) => {
-    const files = [{ name: getFileName(language), content: code }];
-    const body = JSON.stringify({ language, files });
-
-    const options = {
-      hostname: 'piston.k8s.ory.sh',
-      path: '/api/v2/piston/execute',
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
-      timeout: 30000,
-    };
-
-    const req = https.request(options, (resp) => {
-      let data = '';
-      resp.on('data', chunk => data += chunk);
-      resp.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          if (json.message) {
-            resolve({ stdout: '', stderr: json.message, code: 1 });
-          } else {
-            resolve({
-              stdout: json.run?.stdout || '',
-              stderr: json.run?.stderr || '',
-              code: json.run?.code ?? 1,
-            });
-          }
-        } catch (e) {
-          resolve({ stdout: '', stderr: 'Failed to parse response', code: 1 });
-        }
-      });
-    });
-
-    req.on('error', (err) => {
-      resolve({ stdout: '', stderr: 'Piston API unreachable: ' + err.message, code: 1 });
-    });
-    req.on('timeout', () => {
-      req.destroy();
-      resolve({ stdout: '', stderr: 'Execution timed out (30s)', code: 1 });
-    });
-
-    req.write(body);
-    req.end();
-  });
-}
-
 function getFileName(lang) {
-  const names = { c: 'main.c', cpp: 'main.cpp', java: 'Main.java', python: 'main.py' };
-  return names[lang] || 'main.txt';
+  return { c: 'main.c', cpp: 'main.cpp', java: 'Main.java', python: 'main.py' }[lang] || 'main.txt';
 }
