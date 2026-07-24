@@ -1,5 +1,19 @@
 const https = require('https');
 
+const COMPILERS = {
+  python: 'cpython-3.12.7',
+  c: 'gcc-14.2.0-c',
+  cpp: 'gcc-14.2.0-pp',
+  java: 'openjdk-jdk-22+36',
+};
+
+const TEMPLATES = {
+  python: null,
+  c: null,
+  cpp: null,
+  java: null,
+};
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -10,14 +24,16 @@ module.exports = async (req, res) => {
   const { language, code } = req.body;
   if (!language || !code) return res.status(400).json({ error: 'Missing language or code' });
 
-  const files = [{ name: getFileName(language), content: code }];
-  const body = JSON.stringify({ language, files: files });
+  const compiler = COMPILERS[language];
+  if (!compiler) return res.status(400).json({ run: { stdout: '', stderr: `Unsupported: ${language}`, code: 1 } });
+
+  const body = JSON.stringify({ compiler, code, 'compiler-option-raw': false, 'runtime-option-raw': true });
 
   try {
     const result = await new Promise((resolve, reject) => {
       const r = https.request({
-        hostname: 'emkc.org',
-        path: '/api/v2/piston/execute',
+        hostname: 'wandbox.org',
+        path: '/api/compile.json',
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
         timeout: 30000,
@@ -27,15 +43,10 @@ module.exports = async (req, res) => {
         resp.on('end', () => {
           try {
             const j = JSON.parse(data);
-            if (j.message) {
-              resolve({ stdout: '', stderr: j.message, code: 1 });
-            } else {
-              resolve({
-                stdout: j.run?.stdout || '',
-                stderr: j.run?.stderr || '',
-                code: j.run?.code ?? 1,
-              });
-            }
+            const stdout = j.program_output || j.program_message || '';
+            const stderr = j.program_error || j.compiler_error || j.compiler_message || '';
+            const code = j.status === '0' ? 0 : 1;
+            resolve({ stdout, stderr, code });
           } catch (e) {
             resolve({ stdout: '', stderr: 'Parse error', code: 1 });
           }
@@ -52,7 +63,3 @@ module.exports = async (req, res) => {
     return res.status(200).json({ run: { stdout: '', stderr: err.message, code: 1 } });
   }
 };
-
-function getFileName(lang) {
-  return { c: 'main.c', cpp: 'main.cpp', java: 'Main.java', python: 'main.py' }[lang] || 'main.txt';
-}
