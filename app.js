@@ -2,7 +2,7 @@
 const SUPABASE_URL = CONFIG.supabaseUrl;
 const SUPABASE_KEY = CONFIG.supabaseKey;
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
+const CODE_EXEC_URL = '/api/code';
 const AUTH_PROXY = '/api/auth';
 const AGENTS = {};
 _agents.forEach(a => { AGENTS[a.id] = a; });
@@ -271,16 +271,15 @@ async function runCode() {
   document.getElementById('exec-status').className = 'badge';
   const lang = document.getElementById('lang-select').value;
   const code = document.getElementById('code-editor').value;
-  const names = { c:'main.c', cpp:'main.cpp', java:'Main.java', python:'main.py' };
   try {
-    const res = await fetch(PISTON_URL, {
+    const res = await fetch(CODE_EXEC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ language: lang, files: [{ name: names[lang], content: code }] }),
+      body: JSON.stringify({ language: lang, code: code }),
     });
     const data = await res.json();
     const run = data.run || {};
-    const out = (run.output || '') + (run.stderr ? '\n\nError:\n' + run.stderr : '');
+    const out = (run.stdout || '') + (run.stderr ? '\n\nError:\n' + run.stderr : '');
     document.getElementById('terminal-output').textContent = out || 'No output.';
     const b = document.getElementById('exec-status');
     if (run.code === 0 && !run.stderr) {
