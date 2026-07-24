@@ -11,7 +11,7 @@
 </head>
 <body>
 
-<!-- SPLASH SCREEN -->
+<!-- SPLASH -->
 <div id="splash" class="splash">
     <div class="splash-content">
         <div class="splash-logo">
@@ -22,8 +22,8 @@
     </div>
 </div>
 
-<!-- AUTH SCREEN -->
-<div id="auth" class="screen hidden">
+<!-- AUTH -->
+<div id="auth" class="page hidden">
     <div class="auth-container">
         <div class="auth-logo">
             <span class="material-icons-outlined">psychology</span>
@@ -51,70 +51,52 @@
     </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="app" class="screen hidden">
-    <!-- AI HUB TAB -->
-    <div id="tab-ai" class="tab-content active">
+<!-- APP -->
+<div id="app" class="page hidden">
+
+    <!-- ═══ AI HUB ═══ -->
+    <div id="tab-ai" class="tab-panel active">
         <header class="app-header">
             <div class="header-logo">
-                <div class="header-logo-circle">
-                    <span class="material-icons-outlined">psychology</span>
-                </div>
-                <span class="header-title">AI Hub</span>
+                <div class="hdr-circle indigo"><span class="material-icons-outlined">psychology</span></div>
+                <span class="hdr-title">AI Hub</span>
             </div>
         </header>
-        <div class="tab-body">
+        <div class="scroll-area">
             <div class="agent-card" onclick="openChat('trend_tech')">
                 <div class="agent-icon">🌟</div>
-                <div class="agent-info">
-                    <h3>Trend Tech Guide</h3>
-                    <p>Advanced tech concepts - GenAI, Web3, Cloud</p>
-                </div>
-                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+                <div class="agent-info"><h3>Trend Tech Guide</h3><p>Advanced tech concepts - GenAI, Web3, Cloud</p></div>
+                <span class="material-icons-outlined arr">arrow_forward_ios</span>
             </div>
             <div class="agent-card" onclick="openChat('code_logic')">
                 <div class="agent-icon">🧠</div>
-                <div class="agent-info">
-                    <h3>Code Logic Builder</h3>
-                    <p>Step-by-step algorithms & pseudo-code</p>
-                </div>
-                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+                <div class="agent-info"><h3>Code Logic Builder</h3><p>Step-by-step algorithms & pseudo-code</p></div>
+                <span class="material-icons-outlined arr">arrow_forward_ios</span>
             </div>
             <div class="agent-card" onclick="openChat('error_fixer')">
                 <div class="agent-icon">🔧</div>
-                <div class="agent-info">
-                    <h3>Heavy Code Error Fixer</h3>
-                    <p>Debug C, C++, Java, Python bugs</p>
-                </div>
-                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+                <div class="agent-info"><h3>Heavy Code Error Fixer</h3><p>Debug C, C++, Java, Python bugs</p></div>
+                <span class="material-icons-outlined arr">arrow_forward_ios</span>
             </div>
             <div class="agent-card" onclick="openChat('project_guide')">
                 <div class="agent-icon">📋</div>
-                <div class="agent-info">
-                    <h3>Final Year Project Coordinator</h3>
-                    <p>Brainstorm project ideas & architectures</p>
-                </div>
-                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+                <div class="agent-info"><h3>Final Year Project Coordinator</h3><p>Brainstorm project ideas & architectures</p></div>
+                <span class="material-icons-outlined arr">arrow_forward_ios</span>
             </div>
             <div class="agent-card" onclick="openChat('report_assist')">
                 <div class="agent-icon">📝</div>
-                <div class="agent-info">
-                    <h3>Report Documentation Assistant</h3>
-                    <p>Blackbooks, synopses & abstracts</p>
-                </div>
-                <span class="material-icons-outlined agent-arrow">arrow_forward_ios</span>
+                <div class="agent-info"><h3>Report Documentation Assistant</h3><p>Blackbooks, synopses & abstracts</p></div>
+                <span class="material-icons-outlined arr">arrow_forward_ios</span>
             </div>
         </div>
     </div>
 
-    <!-- CODE LAB TAB -->
-    <div id="tab-code" class="tab-content">
+    <!-- ═══ CODE LAB ═══ -->
+    <div id="tab-code" class="tab-panel">
         <header class="app-header">
             <div class="header-logo">
-                <div class="header-logo-circle mint">
-                    <span class="material-icons-outlined">terminal</span>
-                </div>
-                <span class="header-title">Code Lab</span>
+                <div class="hdr-circle mint"><span class="material-icons-outlined">terminal</span></div>
+                <span class="hdr-title">Code Lab</span>
             </div>
             <select id="lang-select" onchange="onLangChange()">
                 <option value="python">Python</option>
@@ -123,20 +105,18 @@
                 <option value="java">Java</option>
             </select>
         </header>
-        <div class="code-lab-scroll">
+        <div class="code-lab-body">
             <div class="editor-panel">
-                <div class="editor-header">
-                    <span class="material-icons-outlined" style="color:#00BFA5;font-size:16px">code</span>
+                <div class="editor-bar">
+                    <span class="material-icons-outlined" style="color:var(--mint);font-size:16px">code</span>
                     <span id="editor-label">Python Editor</span>
-                    <button class="copy-btn" onclick="copyCode()">
-                        <span class="material-icons-outlined">content_copy</span>
-                    </button>
+                    <button class="copy-btn" onclick="copyCode()"><span class="material-icons-outlined">content_copy</span></button>
                 </div>
                 <textarea id="code-editor" spellcheck="false"></textarea>
             </div>
             <div id="terminal-panel" class="terminal-panel hidden">
-                <div class="terminal-header">
-                    <span class="material-icons-outlined" style="color:#00BFA5;font-size:16px">terminal</span>
+                <div class="terminal-bar">
+                    <span class="material-icons-outlined" style="color:var(--mint);font-size:16px">terminal</span>
                     <span>Output</span>
                     <span id="exec-status" class="exec-badge"></span>
                 </div>
@@ -151,20 +131,18 @@
         </div>
     </div>
 
-    <!-- CHAT VIEW -->
-    <div id="tab-chat" class="tab-content">
+    <!-- ═══ CHAT ═══ -->
+    <div id="tab-chat" class="tab-panel">
         <header class="app-header">
-            <button class="back-btn" onclick="closeChat()">
-                <span class="material-icons-outlined">arrow_back</span>
-            </button>
+            <button class="back-btn" onclick="closeChat()"><span class="material-icons-outlined">arrow_back</span></button>
             <div class="header-logo">
-                <span id="chat-agent-icon" class="chat-agent-icon"></span>
-                <span id="chat-agent-name" class="header-title"></span>
+                <span id="chat-agent-icon" class="chat-emoji"></span>
+                <span id="chat-agent-name" class="hdr-title"></span>
             </div>
         </header>
         <div id="chat-messages" class="chat-messages">
             <div class="chat-empty" id="chat-empty">
-                <span id="chat-empty-icon" class="chat-empty-emoji"></span>
+                <span id="chat-empty-icon" class="empty-emoji"></span>
                 <h3 id="chat-empty-name"></h3>
                 <p id="chat-empty-desc"></p>
             </div>
@@ -173,18 +151,16 @@
             <div class="chat-input-wrap">
                 <textarea id="chat-input" placeholder="Type your message..." rows="1" onkeydown="handleChatKey(event)"></textarea>
             </div>
-            <button class="send-btn" onclick="sendChatMessage()">
-                <span class="material-icons-outlined">send</span>
-            </button>
+            <button class="send-btn" onclick="sendChatMessage()"><span class="material-icons-outlined">send</span></button>
         </div>
     </div>
 
-    <!-- PROFILE TAB -->
-    <div id="tab-profile" class="tab-content">
+    <!-- ═══ PROFILE ═══ -->
+    <div id="tab-profile" class="tab-panel">
         <header class="app-header">
-            <span class="header-title" style="font-weight:700">Profile</span>
+            <span class="hdr-title" style="font-weight:700">Profile</span>
         </header>
-        <div class="tab-body profile-body">
+        <div class="scroll-area profile-area">
             <div class="profile-avatar">
                 <span class="material-icons-outlined">person</span>
             </div>
@@ -195,23 +171,17 @@
             <div class="profile-card">
                 <div class="profile-row">
                     <span class="material-icons-outlined row-icon">email</span>
-                    <div><span class="row-title">Email</span><br><span class="row-sub" id="profile-email2">-</span></div>
+                    <div class="row-text">
+                        <span class="row-title">Email</span>
+                        <span class="row-sub" id="profile-email2">-</span>
+                    </div>
                 </div>
                 <div class="profile-row">
                     <span class="material-icons-outlined row-icon">fingerprint</span>
-                    <div><span class="row-title">User ID</span><br><span class="row-sub" id="profile-uid">-</span></div>
-                </div>
-            </div>
-
-            <div class="section-label">About</div>
-            <div class="profile-card">
-                <div class="profile-row">
-                    <span class="material-icons-outlined row-icon">info</span>
-                    <div><span class="row-title">Version</span><br><span class="row-sub">1.0.0</span></div>
-                </div>
-                <div class="profile-row">
-                    <span class="material-icons-outlined row-icon">code</span>
-                    <div><span class="row-title">Built with</span><br><span class="row-sub">HTML + CSS + JS</span></div>
+                    <div class="row-text">
+                        <span class="row-title">User ID</span>
+                        <span class="row-sub" id="profile-uid">-</span>
+                    </div>
                 </div>
             </div>
 
@@ -222,7 +192,7 @@
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
+    <!-- ═══ BOTTOM NAV ═══ -->
     <nav class="bottom-nav" id="bottom-nav">
         <button class="nav-item active" onclick="switchTab('ai')" data-tab="ai">
             <span class="material-icons-outlined">psychology</span>
