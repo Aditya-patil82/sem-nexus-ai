@@ -1,7 +1,7 @@
 // Config - keys encoded to avoid secret scanning
 const _k = atob;
 const CONFIG = {
-  supabaseUrl: 'https://supabase.co',
+  supabaseUrl: 'https://dogwowlefosmhjuujrr.supabase.co',
   supabaseKey: _k('ZXlKaGJHY2lPaUpJVXpVeE1pMHhMblI1Y0dWbmFXRnBiaTVwY25Wd2RHbHZiblFpTENKamMyVjBPd3BzWlNJNklucGJiaUlpT2lKemMzUnliMkYwYVc5dVpTSTZJbmNpZkZpbUZpdGRKZlNJc0lsTnlaV04wWDNObGRXUnBabWxrWDJGc2RXVnlkR0ZuYUhSMGNITXhMbkJ1YzJWeWFYVjBJaXdpYVhOeWFXeGxjbUYwYVc5dVgybGtJam9pTVRWbU5qVTJOemt4TmkwME5UZzJPRGd3TURBd01ERXdNRFF4TURFeE1EQXdNREF4TURFd016TTZJak14TWpjMk1qZzJMbjAuLmV4cCI6MTIxMDA0NDcxOX0=')
 };
 
