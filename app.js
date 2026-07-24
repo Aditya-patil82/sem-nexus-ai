@@ -21,8 +21,10 @@ let chatHistory = {};
 let currentAgent = null;
 
 // ─── SUPABASE AUTH ───
+const AUTH_PROXY = '/api/auth';
+
 async function supabaseAuth(endpoint, body) {
-  const url = `${SUPABASE_URL}/auth/v1/${endpoint}`;
+  const url = `${AUTH_PROXY}?path=${endpoint}`;
   console.log('Auth request:', url);
   try {
     const res = await fetch(url, {
@@ -31,7 +33,6 @@ async function supabaseAuth(endpoint, body) {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'X-Supabase-Auth-Api-Version': '2024-11-14',
       },
       body: JSON.stringify(body),
     });
@@ -42,9 +43,7 @@ async function supabaseAuth(endpoint, body) {
     if (!res.ok) throw new Error(data.error_description || data.msg || data.error_code || 'Auth failed');
     return data;
   } catch (err) {
-    if (err.name === 'TypeError' && err.message.includes('fetch')) {
-      throw new Error('Network error - check your connection or Supabase CORS settings');
-    }
+    console.error('Auth error:', err);
     throw err;
   }
 }
