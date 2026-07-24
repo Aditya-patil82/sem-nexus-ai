@@ -22,14 +22,31 @@ let currentAgent = null;
 
 // ─── SUPABASE AUTH ───
 async function supabaseAuth(endpoint, body) {
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error_description || data.msg || 'Auth failed');
-  return data;
+  const url = `${SUPABASE_URL}/auth/v1/${endpoint}`;
+  console.log('Auth request:', url);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'X-Supabase-Auth-Api-Version': '2024-11-14',
+      },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    console.log('Auth response:', res.status, text);
+    let data;
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Server returned: ' + text.substring(0, 200)); }
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.error_code || 'Auth failed');
+    return data;
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      throw new Error('Network error - check your connection or Supabase CORS settings');
+    }
+    throw err;
+  }
 }
 
 function saveSession(data) {
