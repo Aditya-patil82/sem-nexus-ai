@@ -13,41 +13,34 @@
 
 <!-- SPLASH -->
 <div id="splash" class="splash">
-    <div class="splash-content">
-        <div class="splash-logo">
-            <span class="material-icons-outlined">psychology</span>
-        </div>
-        <h1 class="splash-title">Sem Nexus AI</h1>
-        <p class="splash-subtitle">Learn. Code. Create.</p>
+    <div class="splash-inner">
+        <div class="splash-logo"><span class="material-icons-outlined">psychology</span></div>
+        <h1>Sem Nexus AI</h1>
+        <p>Learn. Code. Create.</p>
     </div>
 </div>
 
 <!-- AUTH -->
 <div id="auth" class="page hidden">
-    <div class="auth-container">
-        <div class="auth-logo">
-            <span class="material-icons-outlined">psychology</span>
-        </div>
+    <div class="auth-box">
+        <div class="auth-logo"><span class="material-icons-outlined">psychology</span></div>
         <h2 id="auth-title">Welcome Back</h2>
         <p id="auth-subtitle">Sign in to continue learning</p>
-        <form id="auth-form" class="auth-form">
-            <div class="input-group">
-                <span class="material-icons-outlined input-icon">email</span>
+        <form id="auth-form">
+            <div class="field">
+                <span class="material-icons-outlined field-ico">email</span>
                 <input type="email" id="email" placeholder="Email" required>
             </div>
-            <div class="input-group">
-                <span class="material-icons-outlined input-icon">lock</span>
+            <div class="field">
+                <span class="material-icons-outlined field-ico">lock</span>
                 <input type="password" id="password" placeholder="Password" required minlength="6">
-                <button type="button" class="toggle-pass" onclick="togglePassword()">
+                <button type="button" class="eye-btn" onclick="togglePassword()">
                     <span class="material-icons-outlined" id="eye-icon">visibility_off</span>
                 </button>
             </div>
-            <button type="submit" class="btn-primary" id="auth-btn">Sign In</button>
+            <button type="submit" class="btn-fill" id="auth-btn">Sign In</button>
         </form>
-        <p class="auth-toggle">
-            <span id="toggle-text">Don't have an account? </span>
-            <a href="#" onclick="toggleAuthMode(event)">Sign Up</a>
-        </p>
+        <p class="auth-switch"><span id="toggle-text">Don't have an account? </span><a href="#" onclick="toggleAuthMode(event)">Sign Up</a></p>
     </div>
 </div>
 
@@ -55,48 +48,48 @@
 <div id="app" class="page hidden">
 
     <!-- ═══ AI HUB ═══ -->
-    <div id="tab-ai" class="tab-panel active">
-        <header class="app-header">
-            <div class="header-logo">
-                <div class="hdr-circle indigo"><span class="material-icons-outlined">psychology</span></div>
-                <span class="hdr-title">AI Hub</span>
+    <div id="tab-ai" class="panel active">
+        <header class="bar">
+            <div class="bar-left">
+                <div class="ico-circle indigo"><span class="material-icons-outlined">psychology</span></div>
+                <span class="bar-title">AI Hub</span>
             </div>
         </header>
-        <div class="scroll-area">
-            <div class="agent-card" onclick="openChat('trend_tech')">
-                <div class="agent-icon">🌟</div>
-                <div class="agent-info"><h3>Trend Tech Guide</h3><p>Advanced tech concepts - GenAI, Web3, Cloud</p></div>
-                <span class="material-icons-outlined arr">arrow_forward_ios</span>
+        <div class="scroll">
+            <div class="card" onclick="openChat('trend_tech')">
+                <div class="card-ico">🌟</div>
+                <div class="card-txt"><h3>Trend Tech Guide</h3><p>Advanced tech concepts - GenAI, Web3, Cloud</p></div>
+                <span class="material-icons-outlined chev">chevron_right</span>
             </div>
-            <div class="agent-card" onclick="openChat('code_logic')">
-                <div class="agent-icon">🧠</div>
-                <div class="agent-info"><h3>Code Logic Builder</h3><p>Step-by-step algorithms & pseudo-code</p></div>
-                <span class="material-icons-outlined arr">arrow_forward_ios</span>
+            <div class="card" onclick="openChat('code_logic')">
+                <div class="card-ico">🧠</div>
+                <div class="card-txt"><h3>Code Logic Builder</h3><p>Step-by-step algorithms & pseudo-code</p></div>
+                <span class="material-icons-outlined chev">chevron_right</span>
             </div>
-            <div class="agent-card" onclick="openChat('error_fixer')">
-                <div class="agent-icon">🔧</div>
-                <div class="agent-info"><h3>Heavy Code Error Fixer</h3><p>Debug C, C++, Java, Python bugs</p></div>
-                <span class="material-icons-outlined arr">arrow_forward_ios</span>
+            <div class="card" onclick="openChat('error_fixer')">
+                <div class="card-ico">🔧</div>
+                <div class="card-txt"><h3>Heavy Code Error Fixer</h3><p>Debug C, C++, Java, Python bugs</p></div>
+                <span class="material-icons-outlined chev">chevron_right</span>
             </div>
-            <div class="agent-card" onclick="openChat('project_guide')">
-                <div class="agent-icon">📋</div>
-                <div class="agent-info"><h3>Final Year Project Coordinator</h3><p>Brainstorm project ideas & architectures</p></div>
-                <span class="material-icons-outlined arr">arrow_forward_ios</span>
+            <div class="card" onclick="openChat('project_guide')">
+                <div class="card-ico">📋</div>
+                <div class="card-txt"><h3>Final Year Project Coordinator</h3><p>Brainstorm project ideas & architectures</p></div>
+                <span class="material-icons-outlined chev">chevron_right</span>
             </div>
-            <div class="agent-card" onclick="openChat('report_assist')">
-                <div class="agent-icon">📝</div>
-                <div class="agent-info"><h3>Report Documentation Assistant</h3><p>Blackbooks, synopses & abstracts</p></div>
-                <span class="material-icons-outlined arr">arrow_forward_ios</span>
+            <div class="card" onclick="openChat('report_assist')">
+                <div class="card-ico">📝</div>
+                <div class="card-txt"><h3>Report Documentation Assistant</h3><p>Blackbooks, synopses & abstracts</p></div>
+                <span class="material-icons-outlined chev">chevron_right</span>
             </div>
         </div>
     </div>
 
     <!-- ═══ CODE LAB ═══ -->
-    <div id="tab-code" class="tab-panel">
-        <header class="app-header">
-            <div class="header-logo">
-                <div class="hdr-circle mint"><span class="material-icons-outlined">terminal</span></div>
-                <span class="hdr-title">Code Lab</span>
+    <div id="tab-code" class="panel">
+        <header class="bar">
+            <div class="bar-left">
+                <div class="ico-circle teal"><span class="material-icons-outlined">terminal</span></div>
+                <span class="bar-title">Code Lab</span>
             </div>
             <select id="lang-select" onchange="onLangChange()">
                 <option value="python">Python</option>
@@ -105,25 +98,25 @@
                 <option value="java">Java</option>
             </select>
         </header>
-        <div class="code-lab-body">
-            <div class="editor-panel">
-                <div class="editor-bar">
-                    <span class="material-icons-outlined" style="color:var(--mint);font-size:16px">code</span>
-                    <span id="editor-label">Python Editor</span>
-                    <button class="copy-btn" onclick="copyCode()"><span class="material-icons-outlined">content_copy</span></button>
+        <div class="code-scroll">
+            <div class="editor-box">
+                <div class="editor-top">
+                    <span class="material-icons-outlined ico-sm teal-text">code</span>
+                    <span id="editor-label" class="label-sm">Python Editor</span>
+                    <button class="icon-btn" onclick="copyCode()"><span class="material-icons-outlined ico-sm">content_copy</span></button>
                 </div>
                 <textarea id="code-editor" spellcheck="false"></textarea>
             </div>
-            <div id="terminal-panel" class="terminal-panel hidden">
-                <div class="terminal-bar">
-                    <span class="material-icons-outlined" style="color:var(--mint);font-size:16px">terminal</span>
-                    <span>Output</span>
-                    <span id="exec-status" class="exec-badge"></span>
+            <div id="terminal-panel" class="terminal-box hidden">
+                <div class="term-top">
+                    <span class="material-icons-outlined ico-sm teal-text">terminal</span>
+                    <span class="label-sm">Output</span>
+                    <span id="exec-status" class="badge"></span>
                 </div>
-                <pre id="terminal-output" class="terminal-output"></pre>
+                <pre id="terminal-output" class="term-out"></pre>
             </div>
         </div>
-        <div class="run-bar">
+        <div class="run-row">
             <button id="run-btn" class="btn-run" onclick="runCode()">
                 <span class="material-icons-outlined">play_arrow</span>
                 <span>Run Code</span>
@@ -132,60 +125,48 @@
     </div>
 
     <!-- ═══ CHAT ═══ -->
-    <div id="tab-chat" class="tab-panel">
-        <header class="app-header">
-            <button class="back-btn" onclick="closeChat()"><span class="material-icons-outlined">arrow_back</span></button>
-            <div class="header-logo">
-                <span id="chat-agent-icon" class="chat-emoji"></span>
-                <span id="chat-agent-name" class="hdr-title"></span>
+    <div id="tab-chat" class="panel">
+        <header class="bar">
+            <button class="back" onclick="closeChat()"><span class="material-icons-outlined">arrow_back</span></button>
+            <div class="bar-left">
+                <span id="chat-agent-icon" class="emoji-sm"></span>
+                <span id="chat-agent-name" class="bar-title"></span>
             </div>
         </header>
-        <div id="chat-messages" class="chat-messages">
+        <div id="chat-messages" class="chat-scroll">
             <div class="chat-empty" id="chat-empty">
                 <span id="chat-empty-icon" class="empty-emoji"></span>
                 <h3 id="chat-empty-name"></h3>
                 <p id="chat-empty-desc"></p>
             </div>
         </div>
-        <div class="chat-input-bar">
-            <div class="chat-input-wrap">
+        <div class="chat-bar">
+            <div class="chat-field">
                 <textarea id="chat-input" placeholder="Type your message..." rows="1" onkeydown="handleChatKey(event)"></textarea>
             </div>
-            <button class="send-btn" onclick="sendChatMessage()"><span class="material-icons-outlined">send</span></button>
+            <button class="send" onclick="sendChatMessage()"><span class="material-icons-outlined">send</span></button>
         </div>
     </div>
 
     <!-- ═══ PROFILE ═══ -->
-    <div id="tab-profile" class="tab-panel">
-        <header class="app-header">
-            <span class="hdr-title" style="font-weight:700">Profile</span>
-        </header>
-        <div class="scroll-area profile-area">
-            <div class="profile-avatar">
-                <span class="material-icons-outlined">person</span>
-            </div>
-            <p class="profile-email" id="profile-email">user@email.com</p>
-            <div class="pro-badge">Pro User</div>
-
-            <div class="section-label">Account</div>
-            <div class="profile-card">
-                <div class="profile-row">
-                    <span class="material-icons-outlined row-icon">email</span>
-                    <div class="row-text">
-                        <span class="row-title">Email</span>
-                        <span class="row-sub" id="profile-email2">-</span>
-                    </div>
+    <div id="tab-profile" class="panel">
+        <header class="bar"><span class="bar-title" style="font-weight:700">Profile</span></header>
+        <div class="scroll profile-scroll">
+            <div class="avatar"><span class="material-icons-outlined">person</span></div>
+            <p class="email-text" id="profile-email">user@email.com</p>
+            <div class="pro-tag">Pro User</div>
+            <div class="section-hdr">Account</div>
+            <div class="group-card">
+                <div class="group-row">
+                    <span class="material-icons-outlined teal-text row-ico">email</span>
+                    <div class="row-vert"><span class="row-label">Email</span><span class="row-val" id="profile-email2">-</span></div>
                 </div>
-                <div class="profile-row">
-                    <span class="material-icons-outlined row-icon">fingerprint</span>
-                    <div class="row-text">
-                        <span class="row-title">User ID</span>
-                        <span class="row-sub" id="profile-uid">-</span>
-                    </div>
+                <div class="group-row no-top">
+                    <span class="material-icons-outlined teal-text row-ico">fingerprint</span>
+                    <div class="row-vert"><span class="row-label">User ID</span><span class="row-val" id="profile-uid">-</span></div>
                 </div>
             </div>
-
-            <button class="btn-logout" onclick="signOut()">
+            <button class="btn-outline-red" onclick="signOut()">
                 <span class="material-icons-outlined">logout</span>
                 Sign Out
             </button>
@@ -193,16 +174,16 @@
     </div>
 
     <!-- ═══ BOTTOM NAV ═══ -->
-    <nav class="bottom-nav" id="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('ai')" data-tab="ai">
+    <nav class="nav" id="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('ai')" data-tab="ai">
             <span class="material-icons-outlined">psychology</span>
             <span>AI Hub</span>
         </button>
-        <button class="nav-item" onclick="switchTab('code')" data-tab="code">
+        <button class="nav-btn" onclick="switchTab('code')" data-tab="code">
             <span class="material-icons-outlined">terminal</span>
             <span>Code Lab</span>
         </button>
-        <button class="nav-item" onclick="switchTab('profile')" data-tab="profile">
+        <button class="nav-btn" onclick="switchTab('profile')" data-tab="profile">
             <span class="material-icons-outlined">person</span>
             <span>Profile</span>
         </button>

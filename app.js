@@ -4,10 +4,8 @@ const SUPABASE_KEY = CONFIG.supabaseKey;
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
 const AUTH_PROXY = '/api/auth';
-
 const AGENTS = {};
 _agents.forEach(a => { AGENTS[a.id] = a; });
-
 const BOILERPLATE = {
   c: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}',
   cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}',
@@ -20,6 +18,7 @@ let isLogin = true;
 let currentUser = null;
 let chatHistory = {};
 let currentAgent = null;
+let isSending = false;
 
 // ═══ AUTH ═══
 async function supabaseAuth(endpoint, body) {
@@ -31,13 +30,10 @@ async function supabaseAuth(endpoint, body) {
     });
     const text = await res.text();
     let data;
-    try { data = JSON.parse(text); } catch(e) { throw new Error('Server error: ' + text.substring(0, 200)); }
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Server error'); }
     if (!res.ok) throw new Error(data.error_description || data.msg || data.error_code || 'Auth failed');
     return data;
   } catch (err) {
-    if (err.name === 'TypeError' && err.message.includes('fetch')) {
-      throw new Error('Network error. Check your connection.');
-    }
     throw err;
   }
 }
@@ -50,9 +46,9 @@ function saveSession(data) {
 }
 
 function loadSession() {
-  const token = localStorage.getItem('sn_access');
-  const user = localStorage.getItem('sn_user');
-  if (token && user) { currentUser = JSON.parse(user); return true; }
+  const t = localStorage.getItem('sn_access');
+  const u = localStorage.getItem('sn_user');
+  if (t && u) { currentUser = JSON.parse(u); return true; }
   return false;
 }
 
@@ -77,7 +73,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('auth-form').addEventListener('submit', handleAuth);
 });
 
-// ═══ AUTH HANDLERS ═══
+// ═══ AUTH ═══
 async function handleAuth(e) {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
@@ -91,12 +87,8 @@ async function handleAuth(e) {
       : await supabaseAuth('signup', { email, password: pass });
     saveSession(data);
     showApp();
-  } catch (err) {
-    alert(err.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = isLogin ? 'Sign In' : 'Sign Up';
-  }
+  } catch (err) { alert(err.message); }
+  finally { btn.disabled = false; btn.textContent = isLogin ? 'Sign In' : 'Sign Up'; }
 }
 
 function toggleAuthMode(e) {
@@ -110,18 +102,18 @@ function toggleAuthMode(e) {
 
 function togglePassword() {
   const inp = document.getElementById('password');
-  const icon = document.getElementById('eye-icon');
+  const ico = document.getElementById('eye-icon');
   inp.type = inp.type === 'password' ? 'text' : 'password';
-  icon.textContent = inp.type === 'password' ? 'visibility_off' : 'visibility';
+  ico.textContent = inp.type === 'password' ? 'visibility_off' : 'visibility';
 }
 
 function showApp() {
   document.getElementById('auth').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   if (currentUser) {
-    const email = currentUser.email || '-';
-    document.getElementById('profile-email').textContent = email;
-    document.getElementById('profile-email2').textContent = email;
+    const e = currentUser.email || '-';
+    document.getElementById('profile-email').textContent = e;
+    document.getElementById('profile-email2').textContent = e;
     document.getElementById('profile-uid').textContent = (currentUser.id || '-').substring(0, 16) + '...';
   }
 }
@@ -140,10 +132,10 @@ function signOut() {
 
 // ═══ TAB NAVIGATION ═══
 function switchTab(tab) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
+  document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
   document.getElementById('bottom-nav').style.display = 'flex';
 }
 
@@ -151,70 +143,95 @@ function switchTab(tab) {
 function openChat(agentId) {
   currentAgent = AGENTS[agentId];
   if (!chatHistory[agentId]) chatHistory[agentId] = [];
+  isSending = false;
+
   document.getElementById('chat-agent-icon').textContent = currentAgent.icon;
   document.getElementById('chat-agent-name').textContent = currentAgent.name;
   document.getElementById('chat-empty-icon').textContent = currentAgent.icon;
   document.getElementById('chat-empty-name').textContent = currentAgent.name;
   document.getElementById('chat-empty-desc').textContent = currentAgent.desc;
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+  const input = document.getElementById('chat-input');
+  input.value = '';
+  input.disabled = false;
+  input.focus();
+
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-chat').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
-  renderChatHistory(agentId);
+
+  renderChat(agentId);
 }
 
 function closeChat() {
   currentAgent = null;
+  isSending = false;
   switchTab('ai');
 }
 
-function renderChatHistory(agentId) {
-  const container = document.getElementById('chat-messages');
+function renderChat(agentId) {
+  const c = document.getElementById('chat-messages');
   const msgs = chatHistory[agentId] || [];
-  container.innerHTML = '';
+  c.innerHTML = '';
   if (msgs.length === 0) {
-    container.innerHTML = `<div class="chat-empty"><span class="empty-emoji">${currentAgent.icon}</span><h3>${currentAgent.name}</h3><p>${currentAgent.desc}</p></div>`;
+    c.innerHTML = `<div class="chat-empty"><span class="empty-emoji">${currentAgent.icon}</span><h3>${currentAgent.name}</h3><p>${currentAgent.desc}</p></div>`;
     return;
   }
   msgs.forEach(m => {
-    container.insertAdjacentHTML('beforeend', `<div class="msg ${m.role}">${formatMsg(m.content)}</div>`);
+    c.insertAdjacentHTML('beforeend', `<div class="msg ${m.role}">${fmt(m.content)}</div>`);
   });
-  container.scrollTop = container.scrollHeight;
+  c.scrollTop = c.scrollHeight;
 }
 
-function formatMsg(text) {
-  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+function fmt(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/```([\s\S]*?)```/g,'<pre><code>$1</code></pre>')
     .replace(/`([^`]+)`/g,'<code>$1</code>')
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/\n/g,'<br>');
 }
 
-function handleChatKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+}
 
 async function sendChatMessage() {
+  if (isSending) return;
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
   if (!text || !currentAgent) return;
-  input.value = '';
+
   const agentId = currentAgent.id;
-  chatHistory[agentId] = chatHistory[agentId] || [];
+  isSending = true;
+  input.value = '';
+  input.disabled = true;
+
+  if (!chatHistory[agentId]) chatHistory[agentId] = [];
   chatHistory[agentId].push({ role: 'user', content: text });
-  renderChatHistory(agentId);
-  const container = document.getElementById('chat-messages');
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'typing';
-  typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-  container.appendChild(typingDiv);
-  container.scrollTop = container.scrollHeight;
+  renderChat(agentId);
+
+  const c = document.getElementById('chat-messages');
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.id = 'typing-indicator';
+  typing.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  c.appendChild(typing);
+  c.scrollTop = c.scrollHeight;
+
   try {
-    const apiMessages = [
+    const apiMsgs = [
       { role: 'system', content: currentAgent.sys },
       ...chatHistory[agentId].map(m => ({ role: m.role, content: m.content })),
     ];
     const res = await fetch(OPENROUTER_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentAgent.key}`, 'HTTP-Referer': window.location.origin, 'X-Title': 'Sem Nexus AI' },
-      body: JSON.stringify({ model: currentAgent.model, messages: apiMessages, max_tokens: 2048, temperature: 0.7 }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAgent.key}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Sem Nexus AI',
+      },
+      body: JSON.stringify({ model: currentAgent.model, messages: apiMsgs, max_tokens: 2048, temperature: 0.7 }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || 'AI request failed');
@@ -222,7 +239,14 @@ async function sendChatMessage() {
   } catch (err) {
     chatHistory[agentId].push({ role: 'assistant', content: 'Error: ' + err.message });
   }
-  renderChatHistory(agentId);
+
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+  renderChat(agentId);
+
+  isSending = false;
+  const inp = document.getElementById('chat-input');
+  if (inp) { inp.disabled = false; inp.focus(); }
 }
 
 // ═══ CODE LAB ═══
@@ -238,39 +262,39 @@ function copyCode() { navigator.clipboard.writeText(document.getElementById('cod
 async function runCode() {
   const btn = document.getElementById('run-btn');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="border-top-color:#121212"></div><span>Running...</span>';
+  btn.innerHTML = '<div class="spinner" style="border-top-color:#FFF"></div><span>Running...</span>';
   const panel = document.getElementById('terminal-panel');
   panel.classList.remove('hidden');
   document.getElementById('terminal-output').textContent = 'Compiling and running...';
-  document.getElementById('terminal-output').className = 'terminal-output';
+  document.getElementById('terminal-output').className = 'term-out';
   document.getElementById('exec-status').textContent = '';
-  document.getElementById('exec-status').className = 'exec-badge';
+  document.getElementById('exec-status').className = 'badge';
   const lang = document.getElementById('lang-select').value;
   const code = document.getElementById('code-editor').value;
-  const fileNames = { c:'main.c', cpp:'main.cpp', java:'Main.java', python:'main.py' };
+  const names = { c:'main.c', cpp:'main.cpp', java:'Main.java', python:'main.py' };
   try {
     const res = await fetch(PISTON_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ language: lang, files: [{ name: fileNames[lang], content: code }] }),
+      body: JSON.stringify({ language: lang, files: [{ name: names[lang], content: code }] }),
     });
     const data = await res.json();
     const run = data.run || {};
-    const output = (run.output || '') + (run.stderr ? '\n\nError:\n' + run.stderr : '');
-    document.getElementById('terminal-output').textContent = output || 'No output.';
-    const badge = document.getElementById('exec-status');
+    const out = (run.output || '') + (run.stderr ? '\n\nError:\n' + run.stderr : '');
+    document.getElementById('terminal-output').textContent = out || 'No output.';
+    const b = document.getElementById('exec-status');
     if (run.code === 0 && !run.stderr) {
-      document.getElementById('terminal-output').className = 'terminal-output';
-      badge.textContent = 'Success'; badge.className = 'exec-badge success';
+      document.getElementById('terminal-output').className = 'term-out';
+      b.textContent = 'Success'; b.className = 'badge success';
     } else {
-      document.getElementById('terminal-output').className = 'terminal-output has-error';
-      badge.textContent = 'Error'; badge.className = 'exec-badge error';
+      document.getElementById('terminal-output').className = 'term-out err';
+      b.textContent = 'Error'; b.className = 'badge error';
     }
   } catch (err) {
     document.getElementById('terminal-output').textContent = 'Network error: ' + err.message;
-    document.getElementById('terminal-output').className = 'terminal-output has-error';
+    document.getElementById('terminal-output').className = 'term-out err';
     document.getElementById('exec-status').textContent = 'Error';
-    document.getElementById('exec-status').className = 'exec-badge error';
+    document.getElementById('exec-status').className = 'badge error';
   }
   btn.disabled = false;
   btn.innerHTML = '<span class="material-icons-outlined">play_arrow</span><span>Run Code</span>';
