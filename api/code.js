@@ -7,13 +7,6 @@ const COMPILERS = {
   java: 'openjdk-jdk-22+36',
 };
 
-const TEMPLATES = {
-  python: null,
-  c: null,
-  cpp: null,
-  java: null,
-};
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -25,37 +18,46 @@ module.exports = async (req, res) => {
   if (!language || !code) return res.status(400).json({ error: 'Missing language or code' });
 
   const compiler = COMPILERS[language];
-  if (!compiler) return res.status(400).json({ run: { stdout: '', stderr: `Unsupported: ${language}`, code: 1 } });
+  if (!compiler) return res.status(200).json({ run: { stdout: '', stderr: `Unsupported: ${language}`, code: 1 } });
 
-  const body = JSON.stringify({ compiler, code, 'compiler-option-raw': false, 'runtime-option-raw': true });
+  const postData = JSON.stringify({ compiler: compiler, code: code });
 
   try {
-    const result = await new Promise((resolve, reject) => {
-      const r = https.request({
+    const result = await new Promise((resolve) => {
+      const options = {
         hostname: 'wandbox.org',
         path: '/api/compile.json',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData),
+          'Accept': 'application/json',
+        },
         timeout: 30000,
-      }, (resp) => {
-        let data = '';
-        resp.on('data', c => data += c);
-        resp.on('end', () => {
+      };
+
+      const request = https.request(options, (response) => {
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => {
+          const raw = Buffer.concat(chunks).toString('utf8');
           try {
-            const j = JSON.parse(data);
+            const j = JSON.parse(raw);
             const stdout = j.program_output || j.program_message || '';
             const stderr = j.program_error || j.compiler_error || j.compiler_message || '';
-            const code = j.status === '0' ? 0 : 1;
-            resolve({ stdout, stderr, code });
+            const exitCode = j.status === '0' ? 0 : 1;
+            resolve({ stdout, stderr, code: exitCode });
           } catch (e) {
-            resolve({ stdout: '', stderr: 'Parse error', code: 1 });
+            resolve({ stdout: '', stderr: 'Unexpected response: ' + raw.substring(0, 300), code: 1 });
           }
         });
       });
-      r.on('error', err => resolve({ stdout: '', stderr: 'API unreachable: ' + err.message, code: 1 }));
-      r.on('timeout', () => { r.destroy(); resolve({ stdout: '', stderr: 'Timeout (30s)', code: 1 }); });
-      r.write(body);
-      r.end();
+
+      request.on('error', (err) => resolve({ stdout: '', stderr: 'Network error: ' + err.message, code: 1 }));
+      request.on('timeout', () => { request.destroy(); resolve({ stdout: '', stderr: 'Timed out (30s)', code: 1 }); });
+
+      request.write(postData);
+      request.end();
     });
 
     return res.status(200).json({ run: result });
