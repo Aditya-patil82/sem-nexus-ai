@@ -113,8 +113,8 @@ function switchTab(tab) {
 // ═══ CHAT ═══
 function openChat(agentId) {
   if (abortController) { abortController.abort(); abortController = null; }
-  currentAgent = AGENTS[agentId]; isSending = false;
-  if (!chatHistory[agentId]) chatHistory[agentId] = [];
+  isSending = false;
+  currentAgent = AGENTS[agentId]; chatHistory[agentId] = chatHistory[agentId] || [];
   document.getElementById('chat-agent-icon').textContent = currentAgent.icon;
   document.getElementById('chat-agent-name').textContent = currentAgent.name;
   document.getElementById('chat-empty-icon').textContent = currentAgent.icon;
@@ -126,11 +126,18 @@ function openChat(agentId) {
   document.getElementById('bottom-nav').style.display = 'none';
   renderChat(agentId);
   setTimeout(() => input.focus(), 100);
+  if (!window._chatNavInitialized) {
+    window._chatNavInitialized = true;
+    window.addEventListener('popstate', closeChat);
+  }
+  history.pushState({ tab: 'chat' }, '', '#chat');
 }
 function closeChat() {
   if (abortController) { abortController.abort(); abortController = null; }
-  currentAgent = null; isSending = false;
+  isSending = false; currentAgent = null;
+  const input = document.getElementById('chat-input'); if (input) input.disabled = true;
   switchTab('ai');
+  history.pushState({ tab: 'ai' }, '', '#ai');
 }
 function renderChat(agentId) {
   const c = document.getElementById('chat-messages'), msgs = chatHistory[agentId] || [];
