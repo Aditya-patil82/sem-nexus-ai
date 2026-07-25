@@ -1,26 +1,52 @@
 const https = require('https');
 
-const MODEL = 'openai/gpt-4o-mini';
-const BASE_URL = 'https://pollinations.ai';
+const STAGES = [
+  { model: 'nvidia/nemotron-3-ultra-550b-a55b:free', token: process.env.STAGE1_TOKEN || '', timeout: 4000 },
+  { model: 'nvidia/nemotron-3-super-120b-a12b:free', token: process.env.STAGE2_TOKEN || '', timeout: 4000 },
+  { model: 'openai/gpt-oss-20b:free', token: process.env.STAGE3_TOKEN || '', timeout: 4000 },
+  { model: 'inclusionai/ling-3.0-flash:free', token: process.env.STAGE4_TOKEN || '', timeout: 4000 },
+];
 
 const AGENTS = {
-  trend_tech: { sys: 'Teach advanced industry concepts like GenAI and Cloud to BCA students. Always respond in a conversational mix of Kannada and English.' },
-  code_logic: { sys: 'Core Rule: Never provide raw code solutions instantly. Break down user queries into logical steps, algorithms, and pseudo-code flows in mixed Kannada-English first.' },
-  error_fixer: { sys: 'Accept broken code blocks (C, C++, Java, Python) and trace syntax/runtime bugs. Return optimized corrected code and explain precisely why the error occurred.' },
-  project_guide: { sys: 'Help final year BCA students brainstorm 10 novel project ideas based on Web, Mobile, or AI. Give architectural patterns and tech stack recommendations.' },
-  report_assist: { sys: 'Help students draft perfect university-grade blackbook components, project synopses, abstracts, and documentation templates.' },
+  trend_tech: { sys: 'Teach cutting-edge industry concepts like GenAI, Cloud, and Web3 to BCA students. Always respond in a highly conversational, easy-to-understand mix of simple Kannada and English.' },
+  code_logic: { sys: 'Core Rule: Never provide raw copy-paste code snippets immediately. Break down user queries into logical steps, algorithms, and pseudo-code flows first in mixed Kannada-English.' },
+  error_fixer: { sys: 'Act as an expert software debugger. Accept broken code blocks (C, C++, Java, Python) and syntax/runtime bugs. Return the optimized corrected code and explain precisely why the error occurred.' },
+  project_guide: { sys: 'Help final-year BCA students brainstorm 10 novel, trend-aligned project ideas based on Web, Mobile Apps, or AI. Give architectural patterns and tech stack recommendations.' },
+  report_assist: { sys: 'Help students draft official university-grade blackbook documentation components, project synopses, abstracts, and detailed system requirements templates.' },
 };
 
-function httpRequest(options, body) {
+function requestStage(stage, apiMessages) {
   return new Promise((resolve, reject) => {
-    const req = https.request({ ...options, followRedirects: true }, (res) => {
+    if (!stage.token) return reject(new Error(`${stage.model} has no token configured`));
+    const body = JSON.stringify({ model: stage.model, messages: apiMessages, stream: false, max_tokens: 2048, temperature: 0.7 });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), stage.timeout);
+
+    const req = https.request({
+      hostname: 'openrouter.ai',
+      path: '/api/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${stage.token}`,
+        'HTTP-Referer': 'https://semnexusweb.vercel.app',
+        'Content-Length': Buffer.byteLength(body),
+      },
+      signal: controller.signal,
+      timeout: stage.timeout,
+    }, (res) => {
+      clearTimeout(timer);
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => resolve({ status: res.statusCode, data, headers: res.headers }));
+      res.on('end', () => {
+        if (res.statusCode !== 200) return reject(new Error(`Stage ${stage.model} HTTP ${res.statusCode}`));
+        resolve(data);
+      });
     });
-    req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('Request timed out')); });
-    if (body) req.write(body);
+
+    req.on('error', (err) => { clearTimeout(timer); reject(err); });
+    req.on('timeout', () => { req.destroy(); reject(new Error(`Stage ${stage.model} timed out`)); });
+    req.write(body);
     req.end();
   });
 }
@@ -43,32 +69,18 @@ module.exports = async (req, res) => {
     ...messages.map(m => ({ role: m.role, content: m.content })),
   ];
 
-  const body = JSON.stringify({ model: MODEL, messages: apiMessages });
-
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'no-cache');
-
-  try {
-    const result = await httpRequest({
-      hostname: 'pollinations.ai',
-      path: '/',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
-      },
-      timeout: 60000,
-      protocol: 'https:',
-    }, body);
-
-    if (result.status !== 200) {
-      return res.status(result.status).json({ error: 'Pollinations AI error', status: result.status });
+  let lastError = null;
+  for (const stage of STAGES) {
+    try {
+      const raw = await requestStage(stage, apiMessages);
+      const parsed = JSON.parse(raw);
+      const content = parsed.choices?.[0]?.message?.content || '';
+      if (content) return res.status(200).json({ content });
+    } catch (err) {
+      lastError = err;
+      continue;
     }
-
-    const parsed = JSON.parse(result.data);
-    const content = parsed.message || parsed.final_answer || parsed.Answer || parsed.content || '';
-    res.status(200).json({ content });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
+
+  res.status(502).json({ error: 'All 4 failover stages exhausted', detail: lastError?.message || 'No response' });
 };
