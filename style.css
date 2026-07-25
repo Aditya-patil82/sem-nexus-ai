@@ -18,12 +18,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .splash-inner p{font-size:13px;color:var(--text2);margin-top:8px;letter-spacing:3px}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 
-/* ═══ POINTER-EVENTS HIERARCHY ═══ */
-.ai-hub-dashboard{pointer-events:auto!important}
-.chat-panel-view:not(.active),.chat-panel-view[hidden],.chat-panel-view.is-closed{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-.chat-panel-view.active{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
 /* ═══ PAGE ═══ */
-.page{position:fixed;inset:0;z-index:10;background:var(--bg);pointer-events:auto}
+.page{position:fixed;inset:0;z-index:10;background:var(--bg)}
 
 /* ═══ AUTH ═══ */
 .auth-box{max-width:400px;margin:0 auto;padding:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%}
@@ -47,10 +43,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 /* ═══ APP LAYOUT ═══ */
 #app{display:flex;flex-direction:column;height:100dvh}
 
-/* ═══ PANELS ═══ */
-.panel{display:none;flex-direction:column;position:absolute;top:0;left:0;right:0;bottom:var(--nav-h);overflow:hidden;background:var(--bg);pointer-events:auto;opacity:1;visibility:visible}
+/* ═══ PANELS — pure display toggle, no stacking ═══ */
+.panel{display:none;flex-direction:column;position:absolute;top:0;left:0;right:0;bottom:var(--nav-h);overflow:hidden;background:var(--bg)}
 .panel.active{display:flex}
-.panel.is-closed{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 
 /* ═══ HEADER BAR ═══ */
 .bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;min-height:56px}
@@ -117,8 +112,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .dot:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.stream-cursor{animation:blink-cursor .6s step-end infinite;font-weight:100;color:var(--indigo)}
-@keyframes blink-cursor{50%{opacity:0}}
 .chat-bar{display:flex;align-items:flex-end;gap:8px;padding:10px 14px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
 .chat-field{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:24px;overflow:hidden}
 .chat-field textarea{width:100%;padding:11px 18px;background:transparent;border:none;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;resize:none;outline:none;max-height:100px;line-height:1.4}

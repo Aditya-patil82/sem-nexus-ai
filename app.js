@@ -99,44 +99,46 @@ function signOut() {
   document.getElementById('email').value = ''; document.getElementById('password').value = '';
 }
 
-// ═══ TAB NAV ═══
+// ═══ TAB NAV — pure display:none swap, one visible panel at a time ═══
+function showOnly(panelId) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+}
 function switchTab(tab) {
   if (abortController) { abortController.abort(); abortController = null; }
   isSending = false;
-  document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.pointerEvents = 'none'; });
   document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
-  const target = document.getElementById('tab-' + tab);
-  target.classList.add('active');
-  target.style.pointerEvents = 'auto';
   document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
-  document.getElementById('bottom-nav').style.display = tab === 'ai' ? 'flex' : 'none';
+  showOnly('tab-' + tab);
+  document.getElementById('bottom-nav').style.display = 'flex';
 }
 
 // ═══ CHAT ═══
 function openChat(agentId) {
   if (abortController) { abortController.abort(); abortController = null; }
   isSending = false;
-  currentAgent = AGENTS[agentId]; chatHistory[agentId] = chatHistory[agentId] || [];
-  const prevChat = document.getElementById('chat-messages');
-  if (prevChat) { prevChat.innerHTML = ''; prevChat.style.pointerEvents = 'auto'; }
+  currentAgent = AGENTS[agentId];
+  chatHistory[agentId] = chatHistory[agentId] || [];
   document.getElementById('chat-agent-icon').textContent = currentAgent.icon;
   document.getElementById('chat-agent-name').textContent = currentAgent.name;
   document.getElementById('chat-empty-icon').textContent = currentAgent.icon;
   document.getElementById('chat-empty-name').textContent = currentAgent.name;
   document.getElementById('chat-empty-desc').textContent = currentAgent.desc;
-  const input = document.getElementById('chat-input'); input.value = ''; input.disabled = false; input.style.pointerEvents = 'auto';
-  document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.pointerEvents = 'auto'; });
-  document.getElementById('tab-chat').classList.add('active');
+  const input = document.getElementById('chat-input');
+  input.value = '';
+  input.disabled = false;
+  showOnly('tab-chat');
   document.getElementById('bottom-nav').style.display = 'none';
   renderChat(agentId);
   setTimeout(() => input.focus(), 100);
 }
 function closeChat() {
   if (abortController) { abortController.abort(); abortController = null; }
-  isSending = false; currentAgent = null;
-  const chatPanel = document.getElementById('tab-chat');
-  if (chatPanel) { chatPanel.style.pointerEvents = 'none'; chatPanel.classList.remove('active'); }
-  const input = document.getElementById('chat-input'); if (input) input.disabled = true;
+  isSending = false;
+  currentAgent = null;
+  document.getElementById('chat-input').value = '';
+  document.getElementById('chat-input').disabled = true;
+  document.getElementById('chat-messages').innerHTML = '';
   switchTab('ai');
 }
 function renderChat(agentId) {
