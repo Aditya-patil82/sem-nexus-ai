@@ -178,7 +178,7 @@ async function sendChatMessage() {
     });
     if (!response.ok) { const err = await response.text(); throw new Error(err.substring(0, 300)); }
     const data = await response.json();
-    fullContent = data.content || '';
+    fullContent = data.content || data.message || data.final_answer || data.Answer || '';
     const el = document.getElementById('typing-indicator'); if (el) el.remove();
     c.insertAdjacentHTML('beforeend', `<div class="msg assistant">${fmt(fullContent)}</div>`);
     c.scrollTop = c.scrollHeight;

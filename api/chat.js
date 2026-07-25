@@ -66,7 +66,9 @@ module.exports = async (req, res) => {
       return res.status(result.status).json({ error: 'DuckDuckGo AI error', details: result.data });
     }
 
-    res.status(200).json(JSON.parse(result.data));
+    const parsed = JSON.parse(result.data);
+    const content = parsed.message || parsed.final_answer || parsed.Answer || parsed.content || '';
+    res.status(200).json({ content });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
