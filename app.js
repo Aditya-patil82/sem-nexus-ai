@@ -177,54 +177,20 @@ async function sendChatMessage() {
       signal: abortController.signal,
     });
     if (!response.ok) { const err = await response.text(); throw new Error(err.substring(0, 300)); }
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let isFirstChunk = true;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split('\n');
-      buffer = parts.pop() || '';
-      for (const line of parts) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') break;
-        try {
-          const parsed = JSON.parse(data);
-          const delta = parsed.choices?.[0]?.delta?.content;
-          if (delta) {
-            fullContent += delta;
-            if (isFirstChunk) {
-              const el = document.getElementById('typing-indicator');
-              if (el) el.remove();
-              c.insertAdjacentHTML('beforeend', `<div id="stream-msg" class="msg assistant"></div>`);
-              isFirstChunk = false;
-            }
-            const el = document.getElementById('stream-msg');
-            if (el) el.innerHTML = fmt(fullContent) + '<span class="stream-cursor">|</span>';
-            c.scrollTop = c.scrollHeight;
-          }
-        } catch(e) {}
-      }
-    }
-    const el = document.getElementById('stream-msg');
-    if (el) el.innerHTML = fmt(fullContent);
-    const th = document.getElementById('typing-indicator');
-    if (th) th.remove();
+    const data = await response.json();
+    fullContent = data.content || '';
+    const el = document.getElementById('typing-indicator'); if (el) el.remove();
+    c.insertAdjacentHTML('beforeend', `<div class="msg assistant">${fmt(fullContent)}</div>`);
+    c.scrollTop = c.scrollHeight;
     if (fullContent) chatHistory[agentId].push({ role: 'assistant', content: fullContent });
     if (!fullContent && chatHistory[agentId].length > 1) {
       const last = chatHistory[agentId][chatHistory[agentId].length - 1];
-      if (last.role === 'user') {
-        chatHistory[agentId].push({ role: 'assistant', content: 'No response generated.' });
-      }
+      if (last.role === 'user') chatHistory[agentId].push({ role: 'assistant', content: 'No response generated.' });
     }
     renderChat(agentId);
   } catch (err) {
     if (err.name === 'AbortError') return;
     const el = document.getElementById('typing-indicator'); if (el) el.remove();
-    const msg = document.getElementById('stream-msg'); if (msg) msg.remove();
     chatHistory[agentId].push({ role: 'assistant', content: 'Error: ' + err.message });
     renderChat(agentId);
   } finally {

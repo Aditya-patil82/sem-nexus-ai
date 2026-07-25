@@ -2,6 +2,7 @@ const https = require('https');
 
 const GH_TOKEN = process.env.GH_TOKEN || '';
 const MODEL = 'gpt-4o-mini';
+const BASE_URL = 'https://azure.com';
 
 const AGENTS = {
   trend_tech: { sys: 'Teach advanced industry concepts like GenAI and Cloud to BCA students. Always respond in a highly conversational mix of Kannada and English (Kannada or Roman script based on user preference).' },
@@ -25,43 +26,53 @@ module.exports = async (req, res) => {
   const agent = AGENTS[agentId];
   if (!agent) return res.status(400).json({ error: 'Unknown agent' });
 
-  const apiMessages = [{ role: 'system', content: agent.sys }, ...messages];
-  const body = JSON.stringify({ model: MODEL, messages: apiMessages, stream: true, max_tokens: 2048, temperature: 0.7 });
+  const apiMessages = [
+    { role: 'system', content: agent.sys },
+    ...messages.map(m => ({ role: m.role, content: m.content })),
+  ];
 
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+  const body = JSON.stringify({
+    model: MODEL,
+    messages: apiMessages,
+    stream: false,
+    max_tokens: 2048,
+    temperature: 0.7,
+  });
 
   const options = {
-    hostname: 'models.inference.ai.azure.com',
+    hostname: 'azure.com',
     path: '/chat/completions',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${GH_TOKEN}`,
-      'api-key': GH_TOKEN,
       'Content-Length': Buffer.byteLength(body),
     },
     timeout: 60000,
   };
 
-  const apiReq = https.request(options, (apiRes) => {
-    apiRes.on('data', (chunk) => { res.write(chunk); });
-    apiRes.on('end', () => { res.end(); });
-  });
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const apiReq = https.request(options, (apiRes) => {
+        let data = '';
+        apiRes.on('data', (chunk) => { data += chunk; });
+        apiRes.on('end', () => resolve({ status: apiRes.statusCode, data }));
+      });
+      apiReq.on('error', reject);
+      apiReq.on('timeout', () => { apiReq.destroy(); reject(new Error('Request timed out')); });
+      apiReq.write(body);
+      apiReq.end();
+    });
 
-  apiReq.on('error', (err) => {
-    if (!res.headersSent) { res.status(500).json({ error: err.message }); }
-    else { res.write(`data: {"error":"${err.message}"}\n\n`); res.end(); }
-  });
+    if (result.status !== 200) {
+      return res.status(result.status).json({ error: 'GitHub Models error', details: result.data });
+    }
 
-  apiReq.on('timeout', () => {
-    apiReq.destroy();
-    if (!res.headersSent) { res.status(504).json({ error: 'Timed out' }); }
-    else { res.end(); }
-  });
+    const parsed = JSON.parse(result.data);
+    const content = parsed.choices?.[0]?.message?.content || '';
 
-  apiReq.write(body);
-  apiReq.end();
-  req.on('close', () => { apiReq.destroy(); });
+    res.status(200).json({ content });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
