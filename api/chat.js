@@ -1,21 +1,19 @@
-const http = require('http');
 const https = require('https');
 
-const MODEL = 'meta-llama/Llama-3-70b-Instruct';
-const BASE_URL = 'https://duckduckgo.com';
+const MODEL = 'openai/gpt-4o-mini';
+const BASE_URL = 'https://pollinations.ai';
 
 const AGENTS = {
-  trend_tech: { sys: 'Teach advanced technology concepts like Cloud and AI to BCA students in simple mixed Kannada-English.' },
-  code_logic: { sys: 'Break down coding issues into algorithms and pseudo-code flows instead of rendering raw script blocks instantly.' },
-  error_fixer: { sys: 'Accept broken scripts (C, C++, Java, Python) and display corrected variables with diagnostic code annotations.' },
-  project_guide: { sys: 'Suggest 10 novel academic graduation projects with structured system architectures and stack selections.' },
-  report_assist: { sys: 'Generate clean university blackbook layout templates, abstracts, and functional requirement charts.' },
+  trend_tech: { sys: 'Teach advanced industry concepts like GenAI and Cloud to BCA students. Always respond in a conversational mix of Kannada and English.' },
+  code_logic: { sys: 'Core Rule: Never provide raw code solutions instantly. Break down user queries into logical steps, algorithms, and pseudo-code flows in mixed Kannada-English first.' },
+  error_fixer: { sys: 'Accept broken code blocks (C, C++, Java, Python) and trace syntax/runtime bugs. Return optimized corrected code and explain precisely why the error occurred.' },
+  project_guide: { sys: 'Help final year BCA students brainstorm 10 novel project ideas based on Web, Mobile, or AI. Give architectural patterns and tech stack recommendations.' },
+  report_assist: { sys: 'Help students draft perfect university-grade blackbook components, project synopses, abstracts, and documentation templates.' },
 };
 
 function httpRequest(options, body) {
   return new Promise((resolve, reject) => {
-    const proto = options.protocol === 'https:' ? https : http;
-    const req = proto.request({ ...options, followRedirects: true }, (res) => {
+    const req = https.request({ ...options, followRedirects: true }, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => resolve({ status: res.statusCode, data, headers: res.headers }));
@@ -52,12 +50,11 @@ module.exports = async (req, res) => {
 
   try {
     const result = await httpRequest({
-      hostname: 'duckduckgo.com',
+      hostname: 'pollinations.ai',
       path: '/',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-agent': 'duckduckgo-android-app',
         'Content-Length': Buffer.byteLength(body),
       },
       timeout: 60000,
@@ -65,7 +62,7 @@ module.exports = async (req, res) => {
     }, body);
 
     if (result.status !== 200) {
-      return res.status(result.status).json({ error: 'DuckDuckGo AI error', status: result.status });
+      return res.status(result.status).json({ error: 'Pollinations AI error', status: result.status });
     }
 
     const parsed = JSON.parse(result.data);
