@@ -1,7 +1,7 @@
 const https = require('https');
 
 const GH_TOKEN = process.env.GH_TOKEN || '';
-const MODEL = 'gpt-4o-mini';
+const MODEL = 'meta-llama-3.1-70b-instruct';
 const BASE_URL = 'https://azure.com';
 
 const AGENTS = {
