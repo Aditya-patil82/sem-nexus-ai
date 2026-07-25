@@ -104,6 +104,12 @@ function showOnly(panelId) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById(panelId).classList.add('active');
 }
+function bindCards() {
+  document.querySelectorAll('#tab-ai .card').forEach(c => {
+    const id = c.getAttribute('onclick')?.match(/openChat\('(.+?)'\)/)?.[1];
+    if (id) { c.removeAttribute('onclick'); c.addEventListener('click', () => openChat(id), { once: true }); }
+  });
+}
 function switchTab(tab) {
   if (abortController) { abortController.abort(); abortController = null; }
   isSending = false;
@@ -111,6 +117,7 @@ function switchTab(tab) {
   document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
   showOnly('tab-' + tab);
   document.getElementById('bottom-nav').style.display = 'flex';
+  if (tab === 'ai') bindCards();
 }
 
 // ═══ CHAT ═══
@@ -134,11 +141,15 @@ function openChat(agentId) {
 }
 function closeChat() {
   if (abortController) { abortController.abort(); abortController = null; }
+  abortController = null;
   isSending = false;
   currentAgent = null;
-  document.getElementById('chat-input').value = '';
-  document.getElementById('chat-input').disabled = true;
-  document.getElementById('chat-messages').innerHTML = '';
+  const input = document.getElementById('chat-input');
+  if (input) { input.value = ''; input.disabled = true; }
+  const msgs = document.getElementById('chat-messages');
+  if (msgs) msgs.innerHTML = '';
+  const typing = document.getElementById('typing-indicator');
+  if (typing) typing.remove();
   switchTab('ai');
 }
 function renderChat(agentId) {
