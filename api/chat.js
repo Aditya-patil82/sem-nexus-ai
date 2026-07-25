@@ -1,8 +1,9 @@
 const https = require('https');
+const http = require('http');
 
-const GH_TOKEN = process.env.GH_TOKEN || '';
-const MODEL = 'meta-llama-3.1-70b-instruct';
-const BASE_URL = 'https://azure.com';
+const MODEL = 'meta-llama/Llama-3-70b-Instruct';
+const BASE_URL = 'https://duckduckgo.com';
+const FALLBACK_URL = 'https://allorigins.win';
 
 const AGENTS = {
   trend_tech: { sys: 'Teach advanced industry concepts like GenAI and Cloud to BCA students. Always respond in a highly conversational mix of Kannada and English (Kannada or Roman script based on user preference).' },
@@ -18,7 +19,6 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  if (!GH_TOKEN) return res.status(500).json({ error: 'GitHub token not configured' });
 
   const { agentId, messages } = req.body;
   if (!agentId || !messages) return res.status(400).json({ error: 'Missing agentId or messages' });
@@ -31,21 +31,18 @@ module.exports = async (req, res) => {
     ...messages.map(m => ({ role: m.role, content: m.content })),
   ];
 
-  const body = JSON.stringify({
-    model: MODEL,
-    messages: apiMessages,
-    stream: false,
-    max_tokens: 2048,
-    temperature: 0.7,
-  });
+  const body = JSON.stringify({ model: MODEL, messages: apiMessages });
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
 
   const options = {
-    hostname: 'azure.com',
-    path: '/chat/completions',
+    hostname: 'duckduckgo.com',
+    path: '/',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GH_TOKEN}`,
+      'x-user-agent': 'duckduckgo-android-app',
       'Content-Length': Buffer.byteLength(body),
     },
     timeout: 60000,
@@ -53,7 +50,8 @@ module.exports = async (req, res) => {
 
   try {
     const result = await new Promise((resolve, reject) => {
-      const apiReq = https.request(options, (apiRes) => {
+      const proto = options.port === 443 ? https : http;
+      const apiReq = proto.request(options, (apiRes) => {
         let data = '';
         apiRes.on('data', (chunk) => { data += chunk; });
         apiRes.on('end', () => resolve({ status: apiRes.statusCode, data }));
@@ -65,13 +63,10 @@ module.exports = async (req, res) => {
     });
 
     if (result.status !== 200) {
-      return res.status(result.status).json({ error: 'GitHub Models error', details: result.data });
+      return res.status(result.status).json({ error: 'DuckDuckGo AI error', details: result.data });
     }
 
-    const parsed = JSON.parse(result.data);
-    const content = parsed.choices?.[0]?.message?.content || '';
-
-    res.status(200).json({ content });
+    res.status(200).json(JSON.parse(result.data));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
