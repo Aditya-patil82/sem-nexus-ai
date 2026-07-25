@@ -90,6 +90,7 @@ function showApp() {
     document.getElementById('profile-email2').textContent = e;
     document.getElementById('profile-uid').textContent = (currentUser.id || '-').substring(0, 16) + '...';
   }
+  renderAIHub();
 }
 function signOut() {
   clearSession(); document.getElementById('app').classList.add('hidden'); document.getElementById('auth').classList.remove('hidden');
@@ -99,16 +100,30 @@ function signOut() {
   document.getElementById('email').value = ''; document.getElementById('password').value = '';
 }
 
-// ═══ TAB NAV — pure display:none swap, one visible panel at a time ═══
+// ═══ AI HUB — dynamic card list, rebuilt from scratch on every re-entry ═══
+const CARD_DATA = [
+  { id: 'trend_tech', icon: '🌟', name: 'Trend Tech Guide', desc: 'Advanced tech concepts - GenAI, Web3, Cloud' },
+  { id: 'code_logic', icon: '🧠', name: 'Code Logic Builder', desc: 'Step-by-step algorithms & pseudo-code' },
+  { id: 'error_fixer', icon: '🔧', name: 'Heavy Code Error Fixer', desc: 'Debug C, C++, Java, Python bugs' },
+  { id: 'project_guide', icon: '📋', name: 'Final Year Project Coordinator', desc: 'Brainstorm project ideas & architectures' },
+  { id: 'report_assist', icon: '📝', name: 'Report Documentation Assistant', desc: 'Blackbooks, synopses & abstracts' },
+];
+function renderAIHub() {
+  const scroll = document.querySelector('#tab-ai .scroll');
+  scroll.innerHTML = '';
+  CARD_DATA.forEach(card => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `<div class="card-ico">${card.icon}</div><div class="card-txt"><h3>${card.name}</h3><p>${card.desc}</p></div><span class="material-icons-outlined chev">chevron_right</span>`;
+    el.addEventListener('click', () => openChat(card.id));
+    scroll.appendChild(el);
+  });
+}
+
+// ═══ PANEL SWITCHING — one panel visible at a time ═══
 function showOnly(panelId) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById(panelId).classList.add('active');
-}
-function bindCards() {
-  document.querySelectorAll('#tab-ai .card').forEach(c => {
-    const id = c.getAttribute('onclick')?.match(/openChat\('(.+?)'\)/)?.[1];
-    if (id) { c.removeAttribute('onclick'); c.addEventListener('click', () => openChat(id), { once: true }); }
-  });
 }
 function switchTab(tab) {
   if (abortController) { abortController.abort(); abortController = null; }
@@ -117,7 +132,7 @@ function switchTab(tab) {
   document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
   showOnly('tab-' + tab);
   document.getElementById('bottom-nav').style.display = 'flex';
-  if (tab === 'ai') bindCards();
+  if (tab === 'ai') renderAIHub();
 }
 
 // ═══ CHAT ═══
